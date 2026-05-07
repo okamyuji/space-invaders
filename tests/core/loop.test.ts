@@ -75,6 +75,44 @@ describe("advance: bullets that leave the field are pruned", () => {
   });
 });
 
+describe("advance: invaders touching bunkers erode them", () => {
+  it("kills bunker cells covered by an alive invader", () => {
+    const world = makeWorld();
+    const inv = world.swarm.invaders[0];
+    expect(inv).toBeDefined();
+    if (!inv) return;
+    // Place a bunker exactly under the first invader.
+    const bunker = createBunker({ x: inv.x, y: inv.y, cols: 22, rows: 12, cellSize: 2 });
+    const before = bunker.cells.filter((c) => c).length;
+    const next = advance({ ...world, bunkers: [bunker] }, NO_INPUT, 1 / 60);
+    const after = next.bunkers[0]?.cells.filter((c) => c).length ?? before;
+    expect(after).toBeLessThan(before);
+  });
+
+  it("does not erode bunkers that no invader touches", () => {
+    const world = makeWorld();
+    const farBunker = createBunker({ x: 0, y: 270, cols: 22, rows: 12, cellSize: 2 });
+    const next = advance({ ...world, bunkers: [farBunker] }, NO_INPUT, 1 / 60);
+    expect(next.bunkers[0]?.cells.filter((c) => c).length).toBe(farBunker.cells.length);
+  });
+});
+
+describe("advance: invaders reaching the ground end the game", () => {
+  it("sets game status to 'game-over' when any alive invader reaches the ground line", () => {
+    const world = makeWorld();
+    const groundedInvaders = world.swarm.invaders.map((inv) => ({ ...inv, y: 270 }));
+    const grounded = { ...world, swarm: { ...world.swarm, invaders: groundedInvaders } };
+    const next = advance(grounded, NO_INPUT, 1 / 60);
+    expect(next.game.status).toBe("game-over");
+  });
+
+  it("does not end the game while invaders are above the ground line", () => {
+    const world = makeWorld();
+    const next = advance(world, NO_INPUT, 1 / 60);
+    expect(next.game.status).toBe("running");
+  });
+});
+
 describe("advance: input triggers fire", () => {
   it("creates a player bullet and applies a cooldown", () => {
     const world = makeWorld();

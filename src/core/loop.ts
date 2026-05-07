@@ -39,6 +39,9 @@ const PLAYER_H = 8;
 const FIELD_TOP = 0;
 const FIELD_BOTTOM = 280;
 const SWARM_TICK_BASE = 0.6;
+// Y at which the invader formation is considered to have reached the ground.
+// Matches the green ground line drawn at y=264 in render.ts.
+const GROUND_Y = 256;
 
 function playerRect(p: Player): Rect {
   return { x: p.x, y: p.y, w: p.width, h: PLAYER_H };
@@ -99,6 +102,21 @@ function resolveBulletsVsBunkers(
     if (!consumed) survivors.push(b);
   }
   return { bullets: survivors, bunkers: nextBunkers };
+}
+
+function resolveInvadersVsBunkers(swarm: Swarm, bunkers: ReadonlyArray<Bunker>): Bunker[] {
+  const next: Bunker[] = bunkers.slice();
+  for (const inv of swarm.invaders) {
+    if (!inv.alive) continue;
+    const r: Rect = { x: inv.x, y: inv.y, w: inv.w, h: inv.h };
+    for (let i = 0; i < next.length; i++) {
+      const target = next[i];
+      if (!target) continue;
+      const result = damageBunker(target, r);
+      if (result.hit) next[i] = result.bunker;
+    }
+  }
+  return next;
 }
 
 function resolveInvaderBulletsVsPlayer(
@@ -171,6 +189,9 @@ export function advance(world: World, input: Input, dt: number): World {
   ({ bullets: playerBullets, bunkers } = resolveBulletsVsBunkers(playerBullets, bunkers));
   ({ bullets: invaderBullets, bunkers } = resolveBulletsVsBunkers(invaderBullets, bunkers));
 
+  // Invaders erode bunkers on contact (1978 rule: aliens destroy shields by touching them).
+  bunkers = resolveInvadersVsBunkers(swarm, bunkers);
+
   // Collisions: invader bullets vs player.
   ({ bullets: invaderBullets, game } = resolveInvaderBulletsVsPlayer(invaderBullets, player, game));
 
@@ -179,8 +200,12 @@ export function advance(world: World, input: Input, dt: number): World {
   playerBullets = playerBullets.filter((b) => !isOutOfBounds(b, fieldRange));
   invaderBullets = invaderBullets.filter((b) => !isOutOfBounds(b, fieldRange));
 
-  // Win / lose conditions.
-  if (aliveCount(swarm) === 0) {
+  // Lose condition: any alive invader has reached the ground line.
+  // 1978 rule: game ends regardless of remaining lives.
+  if (swarm.invaders.some((inv) => inv.alive && inv.y + inv.h >= GROUND_Y)) {
+    game = { ...game, status: "game-over", lives: 0 };
+  } else if (aliveCount(swarm) === 0) {
+    // Win condition: cleared the wave.
     game = nextWave(winGame(game));
   }
 
