@@ -46,6 +46,17 @@ describe("createSwarm", () => {
   });
 });
 
+describe("animation frame", () => {
+  it("toggles between 0 and 1 on each tick", () => {
+    const s0 = baseSwarm();
+    expect(s0.frame).toBe(0);
+    const s1 = tickSwarm(s0, { stepX: 2, stepY: 8 });
+    expect(s1.frame).toBe(1);
+    const s2 = tickSwarm(s1, { stepX: 2, stepY: 8 });
+    expect(s2.frame).toBe(0);
+  });
+});
+
 describe("aliveCount", () => {
   it("counts only alive invaders", () => {
     const s = baseSwarm();

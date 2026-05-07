@@ -18,6 +18,7 @@ export type Swarm = {
   readonly invaders: ReadonlyArray<Invader>;
   readonly dir: SwarmDir;
   readonly field: FieldBounds;
+  readonly frame: 0 | 1;
 };
 
 export type SwarmConfig = {
@@ -55,7 +56,7 @@ export function createSwarm(cfg: SwarmConfig): Swarm {
       });
     }
   }
-  return { invaders, dir: 1, field: cfg.field };
+  return { invaders, dir: 1, field: cfg.field, frame: 0 };
 }
 
 export function aliveCount(s: Swarm): number {
@@ -100,14 +101,15 @@ export type TickConfig = {
 export function tickSwarm(s: Swarm, cfg: TickConfig): Swarm {
   const rect = swarmRect(s);
   if (!rect) return s;
+  const nextFrame: 0 | 1 = s.frame === 0 ? 1 : 0;
   const dx = s.dir * cfg.stepX;
   const wouldExceedRight = s.dir === 1 && rect.x + rect.w + dx > s.field.right;
   const wouldExceedLeft = s.dir === -1 && rect.x + dx < s.field.left;
   if (wouldExceedRight || wouldExceedLeft) {
     const nextDir: SwarmDir = s.dir === 1 ? -1 : 1;
     const invaders = s.invaders.map((inv) => ({ ...inv, y: inv.y + cfg.stepY }));
-    return { ...s, dir: nextDir, invaders };
+    return { ...s, dir: nextDir, invaders, frame: nextFrame };
   }
   const invaders = s.invaders.map((inv) => ({ ...inv, x: inv.x + dx }));
-  return { ...s, invaders };
+  return { ...s, invaders, frame: nextFrame };
 }
