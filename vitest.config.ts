@@ -11,7 +11,8 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "html"],
       include: ["src/**/*.ts"],
-      exclude: ["src/main.ts", "src/**/*.d.ts"],
+      // DOM/Canvas/RAF glue is verified by Playwright e2e instead of vitest.
+      exclude: ["src/main.ts", "src/core/render.ts", "src/core/input.ts", "src/**/*.d.ts"],
       thresholds: {
         lines: 80,
         functions: 80,
