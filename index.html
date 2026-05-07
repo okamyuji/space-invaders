@@ -22,16 +22,21 @@
         overflow: hidden;
       }
       #app {
-        height: 100vh;
+        min-height: 100dvh;
         display: grid;
         place-items: center;
+        padding: 0;
       }
       canvas {
         image-rendering: pixelated;
         image-rendering: crisp-edges;
         background: var(--bg);
-        max-width: 100vw;
-        max-height: 100vh;
+        /* Largest size that fits both viewport dimensions while keeping the
+           498:280 aspect ratio. `min()` of width-bound and height-bound. */
+        width: min(100vw, calc(100dvh * 498 / 280));
+        height: auto;
+        aspect-ratio: 498 / 280;
+        display: block;
       }
       .hint {
         position: fixed;
