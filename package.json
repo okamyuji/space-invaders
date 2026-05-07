@@ -1,0 +1,38 @@
+{
+  "name": "space-invaders",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local-only Space Invaders clone built with TypeScript + HTML5 Canvas, developed with TDD on Vite+",
+  "type": "module",
+  "scripts": {
+    "prepare": "lefthook install || true",
+    "dev": "vp dev",
+    "build": "vp build",
+    "preview": "vp preview",
+    "test": "vp test run",
+    "test:watch": "vp test watch",
+    "test:cov": "vp test run --coverage",
+    "lint": "vp lint",
+    "lint:fix": "vp lint --fix",
+    "fmt": "vp fmt --check",
+    "fmt:write": "vp fmt --write .",
+    "check": "vp check",
+    "check:fix": "vp check --fix",
+    "typecheck": "tsc --noEmit",
+    "test:e2e": "playwright test",
+    "test:all": "vp test run && playwright test",
+    "gate": "vp fmt --check && vp lint && tsc --noEmit && vp test run && vp build",
+    "secrets:scan": "gitleaks detect --no-banner --redact --source ."
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "@vitest/coverage-v8": "^4.1.5",
+    "jsdom": "^28.0.0",
+    "lefthook": "^1.10.0",
+    "typescript": "^5.7.0",
+    "vite": "^8.0.10",
+    "vite-plus": "^0.1.12",
+    "vitest": "^4.1.5"
+  },
+  "packageManager": "pnpm@10.32.1"
+}

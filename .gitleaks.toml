@@ -1,0 +1,20 @@
+# Gitleaks config.
+# Inherits the upstream default rules and only adds project-specific allowlists.
+# https://github.com/gitleaks/gitleaks/blob/master/config/gitleaks.toml
+
+title = "space-invaders gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Allow files that legitimately contain high-entropy strings (lockfiles, build artifacts, generated assets)."
+paths = [
+  '''pnpm-lock\.yaml''',
+  '''package-lock\.json''',
+  '''dist/''',
+  '''coverage/''',
+  '''playwright-report/''',
+  '''test-results/''',
+  '''node_modules/''',
+]

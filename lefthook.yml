@@ -1,0 +1,56 @@
+# Lefthook quality gate.
+# Mirrors `.github/workflows/ci.yml` so local pre-commit and CI run the same
+# checks. Anything blocking CI must block pre-commit, and vice versa.
+#
+# Install once after `pnpm install`:
+#   pnpm exec lefthook install
+#
+# Skip locally (emergency only):
+#   LEFTHOOK=0 git commit ...
+
+min_version: 1.10.0
+no_tty: true
+
+pre-commit:
+  parallel: false # Keep linear for clear failure ordering.
+  jobs:
+    - name: gitleaks
+      tags: security
+      run: gitleaks protect --staged --no-banner --redact
+
+    - name: format-check
+      tags: format
+      glob: "*.{ts,tsx,js,jsx,json,html,css,md}"
+      run: pnpm exec vp fmt --check {staged_files}
+
+    - name: lint
+      tags: lint
+      glob: "*.{ts,tsx,js,jsx}"
+      run: pnpm exec vp lint {staged_files}
+
+    - name: typecheck
+      tags: types
+      glob: "*.{ts,tsx}"
+      run: pnpm exec tsc --noEmit
+
+    - name: unit-tests
+      tags: test
+      glob: "*.{ts,tsx}"
+      run: pnpm exec vp test run
+
+    - name: build
+      tags: build
+      glob: "{src/**/*,index.html,vite.config.ts,tsconfig.json,package.json}"
+      run: pnpm exec vp build
+
+pre-push:
+  jobs:
+    - name: full-gate
+      run: pnpm run gate
+
+commit-msg:
+  jobs:
+    - name: conventional-commits
+      run: |
+        head -1 {1} | grep -qE '^(feat|fix|refactor|docs|test|chore|perf|ci|build|revert)(\(.+\))?: .+' \
+          || { echo "Commit message must follow Conventional Commits (feat:, fix:, ...)"; exit 1; }
