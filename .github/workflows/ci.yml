@@ -16,25 +16,20 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  GITLEAKS_VERSION: 8.24.3
-
 jobs:
-  gitleaks:
-    name: Secret scan (gitleaks)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install gitleaks
-        run: |
-          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
-            | tar -xz gitleaks
-          chmod +x gitleaks
-      - name: Scan working tree
-        run: ./gitleaks dir . --no-banner --redact --exit-code 1
+  security:
+    uses: okamyuji/reusable-workflows/.github/workflows/security-scan.yml@v1
 
-  quality-gate:
-    name: Format / Lint / Typecheck / Test / Build
+  ci:
+    uses: okamyuji/reusable-workflows/.github/workflows/node-ci.yml@v1
+    with:
+      node-version: "22"
+      test-command: "run test:cov"
+
+  # vp fmt --check and vp build are not covered by node-ci.yml inputs,
+  # so they stay as a repo-specific job.
+  fmt-and-build:
+    name: Format check / Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -48,25 +43,13 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Format check
         run: pnpm exec vp fmt --check
-      - name: Lint
-        run: pnpm exec vp lint
-      - name: Typecheck
-        run: pnpm exec tsc --noEmit
-      - name: Unit tests
-        run: pnpm exec vp test run --coverage
       - name: Build
         run: pnpm exec vp build
-      - if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-${{ github.run_id }}
-          path: coverage
-          if-no-files-found: ignore
 
   e2e:
     name: Playwright e2e
     runs-on: ubuntu-latest
-    needs: quality-gate
+    needs: ci
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
