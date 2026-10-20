@@ -26,17 +26,19 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1",
-    "@vitest/coverage-v8": "^4.1.12",
+    "@vitest/coverage-v8": "5.0.3",
     "jsdom": "^29.1.1",
     "lefthook": "^2.1.6",
     "typescript": "^6.0.3",
-    "vite": "^8.1.6",
-    "vite-plus": "^1.1.0",
-    "vitest": "^4.1.12"
+    "vite": "npm:@voidzero-dev/vite-plus-core@1.1.0",
+    "vite-plus": "1.1.0",
+    "vitest": "5.0.3"
   },
   "packageManager": "pnpm@10.32.1",
   "pnpm": {
     "overrides": {
+      "vite": "npm:@voidzero-dev/vite-plus-core@1.1.0",
+      "vitest": "5.0.3",
       "esbuild": ">=0.28.1",
       "undici": "^7.29.1",
       "tinypool": "^2.1.2",
