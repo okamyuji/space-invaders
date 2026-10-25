@@ -1,0 +1,13 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    # major は動きが変わりうるので手で上げる。allow は脆弱性更新まで絞るので使わない
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
